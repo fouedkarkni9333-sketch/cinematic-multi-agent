@@ -1,6 +1,7 @@
 import os
 import urllib.request
 import asyncio
+import subprocess
 import replicate
 import edge_tts
 
@@ -13,9 +14,9 @@ class VideoAgent:
 
     async def _generate_speech_audio(self, text: str, output_audio_path: str = "temp_voice.mp3"):
         """
-        توليد صوت ناطق عالي الجودة ومجاني 100% بدون أي مفاتيح مدفوعة
+        توليد صوت ناطق مجاني 100% باستخدام edge-tts
         """
-        print(f"🎙️ [{self.name}] جاري تحويل النص إلى صوت سينمائي/كرتوني مجاناً...")
+        print(f"🎙️ [{self.name}] جاري تحويل النص إلى صوت مجاناً...")
         voice = "ar-EG-SalmaNeural" if any("\u0600" <= c <= "\u06FF" for c in text) else "en-US-ChristopherNeural"
         communicate = edge_tts.Communicate(text, voice)
         await communicate.save(output_audio_path)
@@ -23,21 +24,18 @@ class VideoAgent:
 
     def generate_video(self, prompt_text: str = None, visual_prompt: str = None, dialogue_text: str = None, **kwargs):
         """
-        توليد مشهد كرتوني أنيميشن احترافي مع توليد الصوت الخاص به مجاناً
+        توليد مشهد كرتوني ودمج الصوت تلقائياً مجاناً (0 مليم)
         """
-        raw_prompt = prompt_text if prompt_text else (visual_prompt if visual_prompt else "A vibrant animated cartoon character talking in a expressive colorful background")
-        
-        # تحسين الوصف ليكون كرتونياً وأنيميشن بصورة حيوية
+        raw_prompt = prompt_text if prompt_text else (visual_prompt if visual_prompt else "A vibrant animated cartoon character talking cheerfully")
         cartoon_prompt = f"Vibrant 3D animated cartoon scene, expressive character movement, Pixar and Disney anime style, highly detailed animation, vivid colors, {raw_prompt}"
 
-        print(f"🎬 [{self.name}] جاري إرسال طلب المشهد الكرتوني إلى Replicate: '{cartoon_prompt}'...")
+        print(f"🎬 [{self.name}] جاري طلب المشهد الكرتوني من Replicate...")
 
         if not self.api_token:
-            print("⚠️ مفتاح REPLICATE_API_TOKEN مفقود!")
             raise ValueError("مفتاح REPLICATE_API_TOKEN مفقود في GitHub Secrets.")
 
         try:
-            # 1. توليد مشهد الحركة الكرتونية من Replicate
+            # 1. توليد رابط الفيديو من Replicate
             video_url = replicate.run(
                 "minimax/video-01",
                 input={
@@ -45,24 +43,41 @@ class VideoAgent:
                     "prompt_optimizer": True
                 }
             )
-            print(f"✅ تم بنجاح استلام رابط الفيديو المرئي: {video_url}")
+            print(f"✅ تم استلام رابط الفيديو الأصلي: {video_url}")
 
-            # 2. توليد الصوت المرتبط بالمشهد مجاناً
+            # 2. تنزيل ملف الفيديو والصوت مجاناً
+            raw_video_path = "raw_video.mp4"
+            audio_path = "temp_voice.mp3"
+            
+            urllib.request.urlretrieve(str(video_url), raw_video_path)
             speech_text = dialogue_text if dialogue_text else raw_prompt
-            audio_path = asyncio.run(self._generate_speech_audio(speech_text))
-            print(f"✅ تم إنشاء ملف الصوت الناطق بنجاح: {audio_path}")
+            asyncio.run(self._generate_speech_audio(speech_text))
 
-            return video_url
+            # 3. دمج الصوت مع الفيديو مجاناً باستخدام ffmpeg
+            output_final_path = "final_cartoon_video.mp4"
+            print(f"🎬 [{self.name}] جاري دمج الصوت والفيديو مجاناً باستخدام ffmpeg...")
+            
+            cmd = [
+                "ffmpeg", "-y",
+                "-i", raw_video_path,
+                "-i", audio_path,
+                "-c:v", "copy",
+                "-c:a", "aac",
+                "-shortest",
+                output_final_path
+            ]
+            subprocess.run(cmd, check=True)
+
+            print(f"✨ تم إنشاء الفيديو المدمج بنجاح: {output_final_path}")
+            return output_final_path
 
         except Exception as e:
-            print(f"❌ حدث خطأ أثناء توليد الفيديو والصوت: {e}")
+            print(f"❌ حدث خطأ أثناء التوليد أو الدمج: {e}")
             raise e
 
-def generate_cinematic_video(prompt_text: str = "A cheerful cartoon hero talking excitedly", dialogue_text: str = None):
+def generate_cinematic_video(prompt_text: str = "A cheerful cartoon character talking", dialogue_text: str = None):
     agent = VideoAgent()
     return agent.generate_video(prompt_text=prompt_text, dialogue_text=dialogue_text)
 
 if __name__ == "__main__":
-    sample_prompt = "A cute 3D animated robot talking cheerfully in a colorful futuristic cartoon station"
-    sample_dialogue = "مرحباً بكم في عالم الرسوم المتحركة والذكاء الاصطناعي!"
-    generate_cinematic_video(prompt_text=sample_prompt, dialogue_text=sample_dialogue)
+    generate_cinematic_video()
