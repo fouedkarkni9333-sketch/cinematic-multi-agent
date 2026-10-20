@@ -1,9 +1,9 @@
 import os
-import time
 import replicate
 
 class VideoAgent:
-    def __init__(self):
+    def __init__(self, name="VideoAgent"):
+        self.name = name
         self.api_token = os.environ.get("REPLICATE_API_TOKEN")
         if not self.api_token:
             print("⚠️ تنبيه: لم يتم العثور على REPLICATE_API_TOKEN في متغيرات البيئة.")
@@ -15,7 +15,7 @@ class VideoAgent:
         if not self.api_token:
             raise ValueError("مفتاح REPLICATE_API_TOKEN غير معرف!")
 
-        print(f"🎬 جاري إرسال طلب الفيديو إلى Replicate بناءً على الوصف: '{prompt_text}'...")
+        print(f"🎬 [{self.name}] جاري إرسال طلب الفيديو إلى Replicate بناءً على الوصف: '{prompt_text}'...")
 
         try:
             output = replicate.run(
