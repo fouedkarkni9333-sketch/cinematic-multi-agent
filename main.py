@@ -1,10 +1,30 @@
-import sys
+from agents.director import DirectorAgent
+from agents.visual_prompter import VisualPrompterAgent
 
-def main():
+def run_pipeline():
     print("=== تشغيل نظام الوكلاء السينمائي المستقل ===")
+    
+    # 1. إدخال الفكرة من المستخدم
     user_idea = input("أدخل الفكرة السينمائية التي تريد تجسيدها: ")
-    print(f"\n[النظام]: تم استقبال فكرتك بنجاح: '{user_idea}'")
-    print("[النظام]: جاري تجهيز الوكلاء لتجهيز المشاهد...")
+    print(f"\n[النظام]: تم استلام الفكرة بنجاح: '{user_idea}'\n")
+    
+    # 2. استدعاء الوكلاء
+    director = DirectorAgent("مخرج السينما الآلي")
+    prompter = VisualPrompterAgent("مهندس البصريات")
+    
+    # 3. خط الإنتاج (Workflow): المخرج يصنع السيناريو، ثم مهندس البصريات يحوله لأوامر
+    scenes = director.generate_script(user_idea)
+    visual_prompts = prompter.build_prompts(scenes)
+    
+    # 4. عرض النتائج النهائية المستخرجة من الوكلاء
+    print("\n========================================")
+    print("===  النتائج النهائية لنظام الوكلاء  ===")
+    print("========================================")
+    for item in visual_prompts:
+        print(f"\n[المشهد رقم {item['scene_id']}]")
+        print(f"الأمر البصري الاحترافي: \n{item['generated_prompt']}")
+    print("\n========================================")
+    print("[النظام]: تمت عملية توليد خط الإنتاج بنجاح تام!")
 
 if __name__ == "__main__":
-    main()
+    run_pipeline()
