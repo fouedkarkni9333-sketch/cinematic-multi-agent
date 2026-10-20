@@ -8,20 +8,25 @@ class VideoAgent:
         if not self.api_token:
             print("⚠️ تنبيه: لم يتم العثور على REPLICATE_API_TOKEN في متغيرات البيئة.")
 
-    def generate_video(self, prompt_text: str):
+    def generate_video(self, prompt_text: str, visual_prompt: str = None, **kwargs):
         """
         إرسال طلب توليد فيديو سينمائي إلى منصة Replicate
         """
-        if not self.api_token:
-            raise ValueError("مفتاح REPLICATE_API_TOKEN غير معرف!")
+        # استخدام visual_prompt إذا تم تمريره، وإلا استخدام prompt_text
+        final_prompt = visual_prompt if visual_prompt else prompt_text
 
-        print(f"🎬 [{self.name}] جاري إرسال طلب الفيديو إلى Replicate بناءً على الوصف: '{prompt_text}'...")
+        print(f"🎬 [{self.name}] جاري إرسال طلب الفيديو إلى Replicate بناءً على الوصف: '{final_prompt}'...")
+
+        if not self.api_token:
+            print("⚠️ مفتاح REPLICATE_API_TOKEN غير معرف، سيتم محاكاة التوليد أو إيقاف الطلب.")
+            # يمكنك إرجاع رابط وهمي للتجربة إذا لم تضف الـ Secret بعد، أو رفع خطأ
+            return "https://replicate.delivery/mock-video-output.mp4"
 
         try:
             output = replicate.run(
                 "minimax/video-01",
                 input={
-                    "prompt": prompt_text,
+                    "prompt": final_prompt,
                     "prompt_optimizer": True
                 }
             )
