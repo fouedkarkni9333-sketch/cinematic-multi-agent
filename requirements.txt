@@ -1,3 +1,2 @@
 replicate
 edge-tts
-moviepy
