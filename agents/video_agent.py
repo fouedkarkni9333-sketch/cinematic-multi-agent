@@ -1,20 +1,32 @@
 import os
 import time
+import replicate
 
-class VideoAgent:
-    def __init__(self, name="منتج الفيديو السينمائي"):
-        self.name = name
+def generate_cinematic_video(prompt_text: str):
+    """
+    يقوم بإرسال طلب توليد فيديو سينمائي إلى منصة Replicate
+    باستخدام مفتاح الـ API المخزن في GitHub Secrets.
+    """
+    api_token = os.environ.get("REPLICATE_API_TOKEN")
+    if not api_token:
+        raise ValueError("لم يتم العثور على REPLICATE_API_TOKEN في متغيرات البيئة!")
 
-    def generate_video(self, visual_prompt, scene_id):
-        print(f"\n[{self.name}]: جاري معالجة المشهد رقم {scene_id} وتحويله إلى فيديو...")
-        print(f"[{self.name}]: المحرك البصري يستقبل الأمر: '{visual_prompt[:60]}...'")
-        
-        # محاكاة خط إنتاج الرندر وتخزين المخرجات بصيغة mp4 سحابياً
-        output_filename = f"scene_{scene_id}_output.mp4"
-        
-        # إنشاء ملف مخرجات الوسائط داخل المستودع
-        with open(output_filename, "w", encoding="utf-8") as f:
-            f.write(f"Rendered Video Stream Data for Scene {scene_id}\nPrompt: {visual_prompt}")
-            
-        print(f"[{self.name}]: تم توليد ملف الفيديو بنجاح: {output_filename}")
-        return output_filename
+    print(f"🎬 جاري إرسال طلب الفيديو إلى Replicate بناءً على الوصف: '{prompt_text}'...")
+
+    # استخدام نموذج توليد فيديو احترافي (مثال: Minimax أو Luma عبر Replicate)
+    # يمكنك تعديل رقم الإصدار أو اسم الموديل حسب الحاجة
+    output = replicate.run(
+        "minimax/video-01",
+        input={
+            "prompt": prompt_text,
+            "prompt_optimizer": True
+        }
+    )
+
+    print(تم بنجاح استلام رابط الفيديو الناتج: {output})
+    return output
+
+if __name__ == "__main__":
+    # مثال على برومبت سينمائي افتراضي لنظام الوكلاء
+    sample_prompt = "A cinematic shot of a futuristic cyberpunk city in Sfax at night, neon lights reflecting on wet streets, 4k resolution, hyperrealistic."
+    generate_cinematic_video(sample_prompt)
