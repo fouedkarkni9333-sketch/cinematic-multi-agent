@@ -1,1 +1,3 @@
 replicate
+edge-tts
+moviepy
